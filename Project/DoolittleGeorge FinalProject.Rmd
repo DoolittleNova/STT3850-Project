@@ -1,0 +1,60 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r, message=FALSE, echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(moderndive)
+#Import Data
+df <- read.csv("STT-3850-101 Project Data - Form Responses 1.csv")
+# Rename columns
+colnames(df) <- c("time","major","year","water","nonwater")
+# Delete timestamp
+df <- subset(df, select = -c(time))
+df <- df %>%
+  mutate(nonwater = nonwater / 7)
+
+# Consolidate the data
+new_data <- df %>%
+  mutate(upper = ifelse(year == "Freshman" | year == "Sophomore", 0, 1)) %>%
+  mutate(major = ifelse(major == "College of Fine and Applied Arts" | major == "Hayes School of Music", "College of Fine and Applied Art/Hayes School of Music", major))
+
+# Trim old columns
+new_data <- new_data %>%
+  select(major, upper, water, nonwater)
+```
+
+# Survey on Water vs Beverages Consumed by Major and Years at AppState
+
+#### Nova Doolittle
+
+#### Clayton-George Reid 
+
+------------------------------------------------------------------------
+
+### Exploratory Analyses
+
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
+ggplot(data = new_data, aes(x = water, y = nonwater)) +
+  geom_point() +
+  #geom_jitter() +
+  # Remove the 100 cups of water/day outlier
+  xlim(0, 25) +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_bw() +
+  labs(x = "Water Intake (cups) per Day",
+       y = "Mean number of beverages (by 'drink') per Day",
+       title = "Day Water Intake vs. Weekly Beverage Intake")
+```
+
+To see if our data was at least logical, we first plotted the linear relationship between water and beverages. The assumption is that, given a finite amount of time in the day, there could be no way to consume, say, 15 cups of water (nearly a gallon) a day and still have time to drink 7 beverages (soda, juice, alcohol, etc.).
+
+We see a generally negative linear relationship between the two variables.
+
+```{r, message=FALSE, echo=FALSE}
+water_nonwater_model_year = lm(water ~ nonwater + upper, data = new_data)
+get_regression_table(water_nonwater_model_year)
+```
