@@ -19,7 +19,7 @@ df <- df %>%
 
 # Consolidate the data
 new_data <- df %>%
-  mutate(upper = ifelse(year == "Freshman" | year == "Sophomore", 0, 1)) %>%
+  mutate(upper = ifelse(year == "Freshman" | year == "Sophomore", "lower", "upper")) %>%
   mutate(major = ifelse(major == "College of Fine and Applied Arts" | major == "Hayes School of Music", "College of Fine and Applied Art/Hayes School of Music", major))
 
 # Trim old columns
@@ -55,6 +55,27 @@ To see if our data was at least logical, we first plotted the linear relationshi
 We see a generally negative linear relationship between the two variables.
 
 ```{r, message=FALSE, echo=FALSE}
-water_nonwater_model_year = lm(water ~ nonwater + upper, data = new_data)
+water_nonwater_model_year = lm(water ~ nonwater, data = new_data)
 get_regression_table(water_nonwater_model_year)
+```
+
+This is the same plot, but now separated by upper/lower classmen. While both trend downward, we find that upper-classmen tend to drink more beverages than their lower-classmen peers.
+
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
+ggplot(data = new_data, aes(x = water, y = nonwater, color = upper)) +
+  geom_point() +
+  #geom_jitter() +
+  # Remove the 100 cups of water/day outlier
+  xlim(0, 25) +
+  labs(x = "Water Intake (cups) per Day",
+       y = "Mean number of beverages (by 'drink') per Day",
+       color = "Upper Classmen",
+       title = "Day Water Intake vs. Weekly Beverage Intake") +
+  geom_parallel_slopes(se = FALSE)
+
+```
+
+```{r, message=FALSE, echo=FALSE}
+upper_water_nonwater_model = lm(water ~ nonwater + upper, data = new_data)
+get_regression_table(upper_water_nonwater_model)
 ```
